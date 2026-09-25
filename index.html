@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>the record</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root{
+    --void: #050506;
+    --gold: #a9853f;
+    --gold-bright: #cfa85e;
+    --bone: #d9d4c6;
+    --bone-dim: #6d6a5f;
+    --error: #8f4a37;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{ height:100%; }
+
+  body{
+    background:
+      radial-gradient(ellipse 90% 60% at 50% 8%, #101114 0%, transparent 60%),
+      var(--void);
+    color: var(--bone);
+    font-family: 'Spectral', Georgia, serif;
+    min-height: 100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  .stars{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, rgba(217,212,198,.45), transparent),
+      radial-gradient(1px 1px at 80% 10%, rgba(217,212,198,.3), transparent),
+      radial-gradient(1.5px 1.5px at 60% 70%, rgba(217,212,198,.35), transparent),
+      radial-gradient(1px 1px at 30% 85%, rgba(217,212,198,.25), transparent),
+      radial-gradient(1px 1px at 90% 60%, rgba(217,212,198,.4), transparent),
+      radial-gradient(1px 1px at 45% 40%, rgba(217,212,198,.2), transparent),
+      radial-gradient(1.5px 1.5px at 15% 55%, rgba(217,212,198,.3), transparent),
+      radial-gradient(1px 1px at 70% 90%, rgba(217,212,198,.2), transparent);
+    background-repeat: repeat;
+    opacity:.7;
+  }
+
+  /* faint scan-line flicker, very subtle */
+  .noise{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.012) 0px,
+      rgba(255,255,255,0.012) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    opacity:.5;
+  }
+
+  .stage{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-width: 420px;
+    padding: clamp(32px, 8vw, 48px) clamp(18px, 6vw, 28px);
+    text-align:center;
+  }
+
+  .disc-wrap{
+    position:relative;
+    width:118px; height:118px;
+    margin: 0 auto 40px;
+  }
+
+  .disc{
+    width:100%; height:100%;
+    border-radius:50%;
+    background:
+      radial-gradient(circle at 38% 32%, #d6b877 0%, #a9853f 24%, #6b5628 58%, #3a2f16 100%);
+    box-shadow:
+      0 0 0 1px rgba(169,133,63,.25),
+      0 0 50px rgba(169,133,63,.1),
+      inset 0 0 26px rgba(0,0,0,.5);
+    position:relative;
+    animation: spin 60s linear infinite;
+  }
+  .disc::before{
+    content:""; position:absolute; inset:16%; border-radius:50%;
+    border: 1px solid rgba(5,5,6,.3);
+  }
+  .disc::after{
+    content:""; position:absolute; inset:34%; border-radius:50%;
+    border: 1px solid rgba(5,5,6,.22);
+  }
+  @keyframes spin{ from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+  @media (prefers-reduced-motion: reduce){ .disc{ animation:none; } }
+
+  .wordmark{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing:.3em;
+    color: var(--gold);
+    margin-bottom: 6px;
+    opacity:.9;
+  }
+
+  .wordmark .runes{
+    font-family: 'Noto Sans Runic', 'Segoe UI Historic', sans-serif;
+    font-size: 15px;
+    letter-spacing:.15em;
+    color: var(--gold-bright);
+  }
+
+  .wordmark-alt{
+    font-family: 'Noto Sans Coptic', 'Segoe UI Historic', serif;
+    font-size: 14px;
+    letter-spacing:.2em;
+    color: var(--bone-dim);
+    margin-bottom: 18px;
+    opacity:.75;
+  }
+
+  .mark{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:.22em;
+    color: var(--bone-dim);
+    margin-bottom:20px;
+    opacity:.8;
+  }
+
+  h1{
+    font-size: 24px;
+    font-weight:400;
+    font-style:italic;
+    letter-spacing:.005em;
+    color: var(--bone);
+    margin-bottom: 16px;
+    line-height:1.4;
+  }
+
+  .lede{
+    font-size:14.5px;
+    line-height:1.8;
+    color: var(--bone-dim);
+    font-weight:300;
+    max-width: 340px;
+    margin: 0 auto 38px;
+  }
+
+  form{
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+    align-items:center;
+  }
+
+  .digits{
+    display:flex;
+    gap:12px;
+  }
+
+  .digit{
+    width: 48px;
+    height: 58px;
+    background: rgba(255,255,255,.015);
+    border: 1px solid rgba(169,133,63,.3);
+    color: var(--gold-bright);
+    font-family:'JetBrains Mono', monospace;
+    font-size: 24px;
+    text-align:center;
+    border-radius: 2px;
+    outline:none;
+    caret-color: var(--gold-bright);
+    transition: border-color .25s ease, box-shadow .25s ease, transform .15s ease;
+  }
+
+  .digit:focus{
+    border-color: var(--gold-bright);
+    box-shadow: 0 0 0 3px rgba(169,133,63,.1);
+  }
+
+  .digits.shake .digit{ animation: shake .4s ease; }
+  @keyframes shake{
+    0%,100%{ transform: translateX(0); }
+    25%{ transform: translateX(-5px); }
+    75%{ transform: translateX(5px); }
+  }
+
+  button{
+    background: transparent;
+    border: 1px solid rgba(169,133,63,.5);
+    color: var(--gold-bright);
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:.18em;
+    padding: 12px 30px;
+    border-radius:2px;
+    cursor:pointer;
+    transition: background .25s ease, border-color .25s ease;
+  }
+  button:hover{ background: rgba(169,133,63,.1); border-color: var(--gold-bright); }
+
+  .msg{
+    min-height: 18px;
+    margin-top:18px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:.06em;
+    color: var(--bone-dim);
+    opacity:.85;
+  }
+  .msg.err{ color: var(--error); }
+
+  .success{ display:none; }
+  .success.show{ display:block; animation: fadeIn .8s ease; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  .gate.hide{ display:none; }
+
+  .success p{
+    font-size:14.5px;
+    line-height:1.85;
+    color: var(--bone-dim);
+    font-weight:300;
+    margin-bottom:30px;
+    max-width:340px;
+    margin-left:auto;
+    margin-right:auto;
+  }
+
+  .join-link{
+    display:inline-block;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    color: var(--void);
+    background: var(--gold-bright);
+    padding: 13px 26px;
+    border-radius:2px;
+    text-decoration:none;
+    transition: background .25s ease, transform .15s ease;
+  }
+  .join-link:hover{ background: #dfc07c; }
+
+  footer{
+    margin-top:48px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:9px;
+    letter-spacing:.3em;
+    color: rgba(109,106,95,.4);
+  }
+
+  /* ── responsive: small phones ── */
+  @media (max-width: 400px){
+    .stage{ padding: 36px 20px; }
+    .disc-wrap{ width:100px; height:100px; margin-bottom:32px; }
+    h1{ font-size:21px; }
+    .lede{ font-size:13.5px; }
+    .digit{ width:42px; height:52px; font-size:21px; }
+    .digits{ gap:9px; }
+  }
+
+  @media (max-width: 340px){
+    .digit{ width:36px; height:48px; font-size:19px; }
+    .digits{ gap:7px; }
+  }
+
+  /* ── responsive: larger screens keep it centered, never stretched ── */
+  @media (min-width: 900px){
+    .stage{ max-width: 440px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars"></div>
+<div class="noise"></div>
+
+<div class="stage">
+
+  <div class="disc-wrap"><div class="disc"></div></div>
+
+  <div class="wordmark">RECORD <span class="runes">ᚢᚾᚹᚹ</span></div>
+  <div class="wordmark-alt">ⲣⲉⲕⲟⲣⲇ</div>
+
+  <div id="gate" class="gate">
+    <div class="mark">— · — — · —</div>
+    <h1>Something reached you.<br>Now finish reading it.</h1>
+    <p class="lede">
+      Not everyone who looks at the disc sees what's underneath it.
+      You did. What you found was never a picture — it was a number.
+    </p>
+
+    <form id="gateForm" autocomplete="off">
+      <div class="digits" id="digits">
+        <input class="digit" type="text" inputmode="numeric" maxlength="1" />
+        <input class="digit" type="text" inputmode="numeric" maxlength="1" />
+        <input class="digit" type="text" inputmode="numeric" maxlength="1" />
+        <input class="digit" type="text" inputmode="numeric" maxlength="1" />
+      </div>
+      <button type="submit">confirm</button>
+    </form>
+
+    <div id="msg" class="msg"></div>
+  </div>
+
+  <div id="success" class="success">
+    <div class="mark">RECOGNIZED</div>
+    <h1>You're not early. You're expected.</h1>
+    <p>
+      RECORD:1977 hasn't chosen its mission yet — that part is still open.
+      What we know is who we're looking for. If you're reading this, you
+      may already be one of them.
+    </p>
+    <a class="join-link" id="joinLink" href="#" target="_blank" rel="noopener">request to join →</a>
+  </div>
+
+  <footer>· · · &nbsp; RECORD &nbsp; · · ·</footer>
+
+</div>
+
+<script>
+  // ── EDIT THIS: your Cloudflare Worker URL (from step 4 of the deploy guide) ──
+  const WORKER_URL = "https://record1977-verify.record1977t.workers.dev";
+
+  // Nothing else needs editing here. The code and the team URL live only on
+  // the Worker — this page never receives either one unless verification
+  // succeeds, so there is nothing for "View Source" to reveal.
+
+  const digitsWrap = document.getElementById('digits');
+  const digits = Array.from(digitsWrap.querySelectorAll('.digit'));
+  const form = document.getElementById('gateForm');
+  const msg = document.getElementById('msg');
+  const gate = document.getElementById('gate');
+  const success = document.getElementById('success');
+  const submitBtn = form.querySelector('button');
+
+  digits.forEach((el, i) => {
+    el.addEventListener('input', () => {
+      el.value = el.value.replace(/[^0-9]/g, '').slice(0,1);
+      msg.textContent = '';
+      msg.className = 'msg';
+      if (el.value && i < digits.length - 1) digits[i+1].focus();
+    });
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !el.value && i > 0) digits[i-1].focus();
+    });
+    el.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const text = (e.clipboardData.getData('text') || '').replace(/[^0-9]/g, '');
+      text.split('').slice(0, digits.length).forEach((ch, idx) => {
+        if (digits[idx]) digits[idx].value = ch;
+      });
+      const next = digits[Math.min(text.length, digits.length - 1)];
+      if (next) next.focus();
+    });
+  });
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    const value = digits.map(d => d.value).join('');
+
+    if (value.length < digits.length){
+      msg.textContent = 'Incomplete.';
+      msg.className = 'msg err';
+      digitsWrap.classList.add('shake');
+      setTimeout(()=> digitsWrap.classList.remove('shake'), 400);
+      return;
+    }
+
+    submitBtn.disabled = true;
+    msg.textContent = 'Listening…';
+    msg.className = 'msg';
+
+    try{
+      const res = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: value })
+      });
+      const data = await res.json();
+
+      if (data.ok && data.url){
+        msg.textContent = '';
+        document.getElementById('joinLink').href = data.url;
+        gate.classList.add('hide');
+        success.classList.add('show');
+      } else {
+        msg.textContent = 'Oops. Look back at your records.';
+        msg.className = 'msg err';
+        digitsWrap.classList.add('shake');
+        setTimeout(()=> digitsWrap.classList.remove('shake'), 400);
+        digits.forEach(d => d.value = '');
+        digits[0].focus();
+      }
+    } catch(err){
+      msg.textContent = 'Signal lost. Try again.';
+      msg.className = 'msg err';
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+</script>
+
+</body>
+</html>
